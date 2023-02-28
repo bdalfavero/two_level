@@ -65,7 +65,7 @@ laserBeams = return_lasers(delta, s)
 hamiltonian = return_hamiltonian(0.)
 
 # Make and solve the eqns of motion for N atoms.
-n_atoms = 2
+n_atoms = 10
 args_dict_list = []
 for i in range(n_atoms):
     args_dict_list.append({
@@ -78,11 +78,11 @@ for i in range(n_atoms):
     })
 
 start_time = time.time()
-pool = ProcessPool(nodes=5)
+pool = ProcessPool(nodes=10)
 results = pool.map(solve_case, args_dict_list)
 end_time = time.time()
 
-print("Complete in {}s".format(end_time - start_time))
+print("{} runs complete in {}s".format(n_atoms, end_time - start_time))
 
 eqns_final = results[0]
 
