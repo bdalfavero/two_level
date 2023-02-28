@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pylcp
 from pathos.pools import ProcessPool
+import time
 
 # This simulation is based on the 1D optical molasses in pyLCP's documention.
 
@@ -76,8 +77,12 @@ for i in range(n_atoms):
         "v0": np.array([0., 0., 0.])
     })
 
+start_time = time.time()
 pool = ProcessPool(nodes=5)
 results = pool.map(solve_case, args_dict_list)
+end_time = time.time()
+
+print("Complete in {}s".format(end_time - start_time))
 
 eqns_final = results[0]
 
