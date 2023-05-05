@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
+import sys
+import pytomlpp as pt
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import pylcp
-from pathos.pools import ProcessPool
+#from pathos.pools import ProcessPool
 import time
 
 # This simulation is based on the 1D optical molasses in pyLCP's documention.
@@ -52,20 +55,23 @@ def solve_case(args_dict):
                       freeze_axis=[False, True, True])
     return eqns
 
-# Define constants.
-mass = 200
-delta = -2.
-s = 1.5
-t_span = [0., 10*mass*(1+2*s+4*np.abs(delta)**2)/s]
+# Read from the input file.
+with open(sys.argv[1]) as fp:
+    input_dict = pt.load(fp)
 
-# Define Hamiltonian and EM fields.
+# Define constants.
+mass = input_dict["experiment"]["mass"]
+delta = input_dict["experiment"]["delta"]
+s = input_dict["experiment"]["s"]
+t_span = [0., input_dict["integration"]["t_final"]]
+
 def magField(R):
     return np.zeros(R.shape)
 laserBeams = return_lasers(delta, s)
 hamiltonian = return_hamiltonian(0.)
 
 # Make and solve the eqns of motion for N atoms.
-n_atoms = 10
+n_atoms = input_dict["experiment"]["n_atoms"]
 args_dict_list = []
 for i in range(n_atoms):
     args_dict_list.append({
@@ -78,14 +84,30 @@ for i in range(n_atoms):
     })
 
 start_time = time.time()
-pool = ProcessPool(nodes=10)
-results = pool.map(solve_case, args_dict_list)
+# pool = ProcessPool(nodes=10)
+# results = pool.map(solve_case, args_dict_list)
+results = [solve_case(args_dict) for args_dict in args_dict_list]
 end_time = time.time()
 
 print("{} runs complete in {}s".format(n_atoms, end_time - start_time))
 
-eqns_final = results[0]
+# Send output to csv file.
+# Turn each solution individually into a DataFrame.
+dfs = [pd.DataFrame( \
+    np.concatenate((res.sol.v, res.sol.r), axis=0).T, \
+    index=res.sol.t, columns=["vx", "vy", "vz", "x", "y", "z"]) \
+    for res in results]
 
-fig, ax = plt.subplots()
-ax.plot(eqns_final.sol.t, eqns_final.sol.v.T)
-plt.show()
+for df in dfs:
+    df.index.name = "t"
+
+# Assign a number to each solution.
+for i in range(len(dfs)):
+    dfs[i]["number"] = i
+
+# Create a DataFrame containing each solution,
+# indexed by the number.
+df_total = pd.concat(dfs)
+
+# Output the data as CSV.
+df_total.to_csv(sys.argv[2])
