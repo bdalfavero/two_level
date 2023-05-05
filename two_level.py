@@ -55,6 +55,29 @@ def solve_case(args_dict):
                       freeze_axis=[False, True, True])
     return eqns
 
+# Print a help message when the "--help" flag is passed.
+if "--help" in sys.argv:
+    print( \
+    """
+    two_level.py
+
+    Simulation of two-level atom in a molasses.
+
+    Command line interface:
+    two_level.py <input file> <output file>
+    Input is expected as TOML. Output is CSV.
+    """
+    )
+    quit()
+
+if len(sys.argv) < 3:
+    print( \
+    """
+    Not enough arguments. Run "two_level.py --help" for more.
+    """
+    )
+    quit()
+
 # Read from the input file.
 with open(sys.argv[1]) as fp:
     input_dict = pt.load(fp)
