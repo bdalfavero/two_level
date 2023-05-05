@@ -1,0 +1,8 @@
+[experiment]
+mass = 200.0
+delta = -2.0
+s = 10.0
+n_atoms = 2
+
+[integration]
+t_final = 30.0
