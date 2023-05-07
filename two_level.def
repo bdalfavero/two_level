@@ -1,0 +1,8 @@
+Bootstrap: docker
+From: opensciencegrid/osgvo-ubuntu-20.04:latest
+
+%files
+	./two_level.py /two_level/two_level.py
+
+%post
+	python3 -m pip install --upgrade numpy scipy pytomlpp pylcp pandas matplotlib
